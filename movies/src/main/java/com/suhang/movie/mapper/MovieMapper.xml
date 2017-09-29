@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.suhang.movie.dao.MovieDao">
+    <resultMap id="RM-MOVIE" type="movie">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="ctime" property="ctime"/>
+        <result column="mtime" property="mtime"/>
+    </resultMap>
+
+    <sql id="COLS-MOVIE">
+        <include refid="COLS-INSERT-MOVIE"/>,
+        id, status, ctime, mtime
+    </sql>
+
+    <sql id="COLS-INSERT-MOVIE">
+        name, description
+    </sql>
+
+    <insert id="create" parameterType="movie" keyProperty="id" useGeneratedKeys="true">
+        INSERT into movie (
+        <include refid="COLS-INSERT-MOVIE"/>
+        )
+        VALUES (#{name},#{description}
+        )
+    </insert>
+
+    <update id="update" parameterType="movie">
+        UPDATE movie
+        <set>
+            id = #{id},
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="long">
+        UPDATE movie
+        <set>
+            status = 1
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="findById" parameterType="long" resultMap="RM-MOVIE">
+        SELECT
+        <include refid="COLS-MOVIE"/>
+        FROM movie
+        WHERE id = #{id} AND status = 0
+    </select>
+
+    <select id="query" parameterType="query" resultMap="RM-MOVIE">
+        SELECT
+        <include refid="COLS-MOVIE"/>
+        FROM movie
+        WHERE id > #{lastId} AND status = 0 limit #{limit}
+    </select>
+
+</mapper>

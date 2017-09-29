@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.suhang.movie.dao.FavoriteDao">
+    <resultMap id="RM-FAVORITE" type="favorite">
+        <id column="user_id" property="userId"/>
+        <id column="movie_id" property="movieId"/>
+        <result column="status" property="status"/>
+        <result column="ctime" property="ctime"/>
+        <result column="mtime" property="mtime"/>
+    </resultMap>
+
+    <sql id="COLS-FAVORITE">
+        <include refid="COLS-INSERT-FAVORITE"/>,
+        status, ctime, mtime
+    </sql>
+
+    <sql id="COLS-INSERT-FAVORITE">
+        user_id, movie_id
+    </sql>
+
+    <insert id="create" parameterType="favorite">
+        INSERT into favorite (
+        <include refid="COLS-INSERT-FAVORITE"/>
+        )
+        VALUES (#{userId},#{movieId}
+        )
+        ON DUPLICATE KEY UPDATE status = 0
+    </insert>
+
+    <update id="delete" parameterType="favorite">
+        UPDATE favorite
+        <set>
+            status = 1
+        </set>
+        WHERE user_id = #{userId} AND movie_id = #{movieId}
+    </update>
+
+    <select id="findById" parameterType="favorite" resultMap="RM-FAVORITE">
+        SELECT
+        <include refid="COLS-FAVORITE"/>
+        FROM favorite
+        WHERE user_id = #{userId} AND movie_id = #{movieId} AND status = 0
+    </select>
+
+    <select id="findByUserId" parameterType="long" resultMap="RM-FAVORITE">
+        SELECT
+        <include refid="COLS-FAVORITE"/>
+        FROM favorite
+        WHERE user_id = #{userId} AND status = 0
+    </select>
+
+    <select id="findByMovieId" parameterType="long" resultMap="RM-FAVORITE">
+        SELECT
+        <include refid="COLS-FAVORITE"/>
+        FROM favorite
+        WHERE movie_id = #{movieId} AND status = 0
+    </select>
+
+    <select id="query" parameterType="favoriteQuery" resultMap="RM-FAVORITE">
+        SELECT
+        <include refid="COLS-FAVORITE"/>
+        FROM favorite
+        <where>
+            <choose>
+                <when test="userId != null">
+                    user_id=#{userId} AND movie_id > #{lastId} AND
+                </when>
+                <when test="movieId != null">
+                    movie_id = #{movieId} AND user_id > #{lastId} AND
+                </when>
+            </choose>
+            status = 0 limit #{limit}
+        </where>
+    </select>
+
+</mapper>

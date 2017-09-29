@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.suhang.movie.dao.UserDao">
+    <resultMap id="RM-USER" type="user">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="salt" property="salt"/>
+        <result column="status" property="status"/>
+        <result column="ctime" property="ctime"/>
+        <result column="mtime" property="mtime"/>
+    </resultMap>
+
+    <sql id="COLS-USER">
+        <include refid="COLS-INSERT-USER"/>,
+        id, status, ctime, mtime
+    </sql>
+
+    <sql id="COLS-INSERT-USER">
+        username, password, salt
+    </sql>
+
+    <insert id="create" parameterType="user" keyProperty="id" useGeneratedKeys="true">
+        INSERT into user (
+        <include refid="COLS-INSERT-USER"/>
+        )
+        VALUES (#{username},#{password},#{salt}
+        )
+        ON DUPLICATE KEY UPDATE password = #{password}, salt = #{salt}, status = 0
+    </insert>
+
+    <update id="update" parameterType="user">
+        UPDATE user
+        <set>
+            <choose>
+                <when test="id != null">
+                    id = #{id},
+                </when>
+                <when test="username != null">
+                    username = #{username},
+                </when>
+            </choose>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="salt != null">
+                salt = #{salt},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        <where>
+            <choose>
+                <when test="id != null">
+                    id = #{id}
+                </when>
+                <when test="username != null">
+                    username = #{username}
+                </when>
+                <otherwise>
+                    id = 0
+                </otherwise>
+            </choose>
+        </where>
+    </update>
+
+    <update id="delete" parameterType="long">
+        UPDATE user
+        <set>
+            status = 1
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="findById" parameterType="long" resultMap="RM-USER">
+        SELECT
+        <include refid="COLS-USER"/>
+        FROM user
+        WHERE id = #{id} AND status = 0
+    </select>
+
+    <select id="findByUsername" parameterType="string" resultMap="RM-USER">
+        SELECT
+        <include refid="COLS-USER"/>
+        FROM user
+        WHERE username = #{username} AND status = 0
+    </select>
+
+</mapper>
